@@ -1,40 +1,18 @@
 # 强化学习训练GO2翻越多种地形
-【基于Isaac Gym的四足机器狗强化学习控制翻越梅花桩】 https://www.bilibili.com/video/BV1qQ4VefEa6/?share_source=copy_web&vd_source=ac75510eaafc766062a04f7add43c2f7
-
-## 规则
-
-1. 比赛目标：参赛选手需要设计并训练四足机器人在指定赛道上行走，使其走得越远越好。
-2. 比赛地图：比赛地图由组织者提供，包括赛道的长度、宽度和障碍物设置等信息。
-3. 环境要求：参赛选手需要使用legged_gym作为基础环境，所有接口应保持与原有legged_gym一致。参赛选手可以选择使用强化学习或其他算法进行训练。
-4. 比赛规则：
-   1. 比赛使用的四足机器人需具备行走功能，并且在走道上保持平衡。
-   2. 比赛终止条件为机器人的“base”触碰到地面或者到达终点最远端，视为比赛终止。
-   3. 参赛选手需要提交训练好的模型及代码，或者使用自己电脑展示效果并录屏。
-   4. 比赛结果将根据机器人在赛道上行走的距离来评判，行走距离越远者排名越靠前。
-   5. 机器人可以是全自动的，也可以人为键盘控制机器人的行动。
-   6. 不限制在环境中使用任何传感器
-   7. 不限制学习算法的类型
-   
-
-## 强化学习基础
-
-强化学习（Reinforcement Learning, RL）是一种让智能体（Agent）通过与环境交互来学习最佳行为策略的机器学习方法。智能体通过试错不断探索环境，每次采取行动后都会收到一个反馈（称为奖励），这个奖励告诉它行动的好坏。强化学习的目标是通过不断调整行为策略，最大化长期的累计奖励。
-
-![让AI掌握星际争霸微操：中科院提出强化学习+课程迁移学习方法_凤凰科技](https://th.bing.com/th/id/R.8311e1e00fd70dd6a2a1ed749bff9066?rik=FghwHwWVTXBoxw&riu=http%3a%2f%2fp0.ifengimg.com%2fpmop%2f2018%2f0407%2fE99FE3D403A59F1F5E48922E0EAE972C7DE3B4B4_size25_w1080_h600.jpeg&ehk=FHxR0ukh7YbjE6f7gNQM4ccV9MgG44%2f4o%2fAVz%2b0BaHU%3d&risl=&pid=ImgRaw&r=0)
 
 ## 安装
 
-我的环境是Ubuntu 20.04.6 LTS，pytroch版本是2.4.0+cu121，主要编程环境为VS Code。
+我的环境是Ubuntu 20.04.6 LTS，pytroch版本是2.4.1+cu121，主要编程环境为VS Code。
 
 ### 安装准备
 
 从库中拉开源项目文件，已经放到github上了，可以用clone，失败的话也可以直接"Download ZIP"
 
 ```sh
-git clone https://github.com/jindadu00/legged_robot_competition
+git clone git@github.com:XihanM/Legged-Robot-Navigate.git
 ```
 
-进入legged_robot_competition文件夹，打开终端，启动VS Code
+进入legged-robot-navigate文件夹，打开终端，启动VS Code
 
 ### 安装legged_gym，isaacgym
 
