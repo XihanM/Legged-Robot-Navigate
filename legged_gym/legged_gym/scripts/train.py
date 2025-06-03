@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
-
+'''
 import debugpy # type: ignore
 try:
     debugpy.listen(('localhost', 9501))
@@ -36,7 +36,7 @@ try:
 except Exception as e:
     print(f"An error occurred: {e}")
     pass
-
+'''
 import numpy as np
 import os
 from datetime import datetime

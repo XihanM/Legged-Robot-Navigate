@@ -42,34 +42,35 @@ class LeggedRobotCfg(BaseConfig):
 
     class terrain:
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
-        horizontal_scale = 0.1 # [m]
+        horizontal_scale = 0.1 # [m] 每个网格点代表0.1米
         vertical_scale = 0.005 # [m]
         border_size = 25 # [m]
-        curriculum = True
-        static_friction = 1.0
-        dynamic_friction = 1.0
-        restitution = 0.
-        # rough terrain only:
-        measure_heights = True
+        curriculum = True   #课程学习，从简单地形开始训练到复杂地形
+        static_friction = 1.0  #静摩擦因数
+        dynamic_friction = 1.0 #动摩擦因数
+        restitution = 0. #弹性系数   0代表无弹性
+        # rough terrain only:仅崎岖地形的参数
+        measure_heights = True    #是否测量高度
+        #定义了机器人前方的测量网格
         measured_points_x = [-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] # 1mx1.6m rectangle (without center line)
         measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]
-        selected = False # select a unique terrain type and pass all arguments
-        terrain_kwargs = None # Dict of arguments for selected terrain
-        max_init_terrain_level = 5 # starting curriculum state
-        terrain_length = 8.
+        selected = False # select a unique terrain type and pass all arguments选择独特的地形类型并通过所有参数
+        terrain_kwargs = None # Dict of arguments for selected terrain 选中地形的参数字典
+        max_init_terrain_level = 5 # starting curriculum state   控制训练初期的最大难度。
+        terrain_length = 8.  #定义每个独立地形块的物理尺寸。
         terrain_width = 8.
-        num_rows= 10 # number of terrain rows (levels)
-        num_cols = 20 # number of terrain cols (types)
-        # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
+        num_rows= 10 # number of terrain rows (levels)  地形行数（难度递增方向）
+        num_cols = 20 # number of terrain cols (types)  地形列数（每种难度的变体数量）
+        # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]地形类型：[光滑的斜坡，粗糙的斜坡，楼梯上下，楼梯向下，离散]
         terrain_proportions = [0.1, 0.1, 0.35, 0.25, 0.2]
         # trimesh only:
-        slope_treshold = 0.75 # slopes above this threshold will be corrected to vertical surfaces
+        slope_treshold = 0.75 # slopes above this threshold will be corrected to vertical surfaces高于此阈值的斜率将被视为垂直地形
 
     class commands:
-        curriculum = False
-        max_curriculum = 1.
+        curriculum = False  #是否启用指令难度递增的课程学习策略
+        max_curriculum = 1. #课程学习的最大难度系数
         num_commands = 4 # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
-        resampling_time = 10. # time before command are changed[s]
+        resampling_time = 10. # time before command are changed[s]指令变更间隔时间（秒）
         heading_command = True # if true: compute ang vel command from heading error
         class ranges:
             lin_vel_x = [-1.0, 1.0] # min max [m/s]
@@ -87,45 +88,45 @@ class LeggedRobotCfg(BaseConfig):
             "joint_b": 0.}
 
     class control:
-        control_type = 'P' # P: position, V: velocity, T: torques
+        control_type = 'P' # P: position位置控制, V: velocity速度, T: torques力矩
         # PD Drive parameters:
-        stiffness = {'joint_a': 10.0, 'joint_b': 15.}  # [N*m/rad]
-        damping = {'joint_a': 1.0, 'joint_b': 1.5}     # [N*m*s/rad]
-        # action scale: target angle = actionScale * action + defaultAngle
+        stiffness = {'joint_a': 10.0, 'joint_b': 15.}  # [N*m/rad]刚度系数
+        damping = {'joint_a': 1.0, 'joint_b': 1.5}     # [N*m*s/rad]阻尼系数
+        # action scale: target angle = actionScale * action + 目标角度 = action_scale × 策略输出 + 默认角度
         action_scale = 0.5
         # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 4
+        decimation = 4  #表示策略每 4 个物理步更新一次
 
     class asset:
-        file = ""
-        name = "legged_robot"  # actor name
-        foot_name = "None" # name of the feet bodies, used to index body state and contact force tensors
-        penalize_contacts_on = []
-        terminate_after_contacts_on = []
-        disable_gravity = False
-        collapse_fixed_joints = True # merge bodies connected by fixed joints. Specific fixed joints can be kept by adding " <... dont_collapse="true">
-        fix_base_link = False # fixe the base of the robot
-        default_dof_drive_mode = 3 # see GymDofDriveModeFlags (0 is none, 1 is pos tgt, 2 is vel tgt, 3 effort)
+        file = "" # URDF/SDF模型文件路径
+        name = "legged_robot"  # actor name 机器人在仿真中的名称
+        foot_name = "None" #足部链接名称（用于检测接触力）
+        penalize_contacts_on = []  # 接触惩罚的链接列表
+        terminate_after_contacts_on = []  # 接触后终止episode的链接列表
+        disable_gravity = False   # 禁用重力（通常为False）
+        collapse_fixed_joints = True #  合并固定关节，提高仿真效率
+        fix_base_link = False # 固定机器人基座（用于调试）
+        default_dof_drive_mode = 3 # 驱动模式(0 is none, 1 is 位置控制 tgt, 2 is 速度 tgt, 3 力矩)
         self_collisions = 0 # 1 to disable, 0 to enable...bitwise filter
-        replace_cylinder_with_capsule = True # replace collision cylinders with capsules, leads to faster/more stable simulation
-        flip_visual_attachments = False # Some .obj meshes must be flipped from y-up to z-up
+        replace_cylinder_with_capsule = True #用胶囊体替代圆柱体，提高碰撞检测效率
+        flip_visual_attachments = False # 某些.obj网格 must be 翻转 from y-up to z-up
         
-        density = 0.001
-        angular_damping = 0.
-        linear_damping = 0.
+        density = 0.001 #密度
+        angular_damping = 0.  #角阻尼系数
+        linear_damping = 0.  #线性阻尼系数
         max_angular_velocity = 1000.
         max_linear_velocity = 1000.
         armature = 0.
         thickness = 0.01
 
     class domain_rand:
-        randomize_friction = True
+        randomize_friction = True #随机化摩擦参数
         friction_range = [0.5, 1.25]
-        randomize_base_mass = False
+        randomize_base_mass = False #随机化机器人基座质量
         added_mass_range = [-1., 1.]
-        push_robots = True
-        push_interval_s = 15
-        max_push_vel_xy = 1.
+        push_robots = True #随机推力
+        push_interval_s = 15 # 推力施加间隔（秒）
+        max_push_vel_xy = 1.  #最大推力速度（m/s）
 
     class rewards:
         class scales:
