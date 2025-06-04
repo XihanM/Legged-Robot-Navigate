@@ -93,16 +93,18 @@ class OnPolicyRunner:
         self.alg.actor_critic.train() # switch to train mode (for dropout for example)
 
         ep_infos = []
-        rewbuffer = deque(maxlen=100)
-        lenbuffer = deque(maxlen=100)
+        rewbuffer = deque(maxlen=100)  #存储最近 100 个 episode 的总奖励
+        lenbuffer = deque(maxlen=100)  #存储最近 100 个 episode 的长度（步数）
+        #current Reward sum跟踪每个并行环境当前 episode 的累积奖励,形状为(num_envs,)的零张量，在每次环境步骤后累加奖励
         cur_reward_sum = torch.zeros(self.env.num_envs, dtype=torch.float, device=self.device)
+        #跟踪每个并行环境当前 episode 的长度（步数）
         cur_episode_length = torch.zeros(self.env.num_envs, dtype=torch.float, device=self.device)
-
+        #self.current_learning_iteration帮助恢复中断的训练，tot_iter是训练的总迭代次数
         tot_iter = self.current_learning_iteration + num_learning_iterations
         for it in range(self.current_learning_iteration, tot_iter):
             start = time.time()
             # Rollout
-            with torch.inference_mode():
+            with torch.inference_mode():  #禁用梯度
                 for i in range(self.num_steps_per_env):
                     actions = self.alg.act(obs, critic_obs)
                     obs, privileged_obs, rewards, dones, infos = self.env.step(actions)
