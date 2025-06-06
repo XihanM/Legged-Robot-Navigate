@@ -67,13 +67,13 @@ class LeggedRobot(BaseTask):
         self.height_samples = None
         self.debug_viz = False
         self.init_done = False
-        self._parse_cfg(self.cfg)
+        self._parse_cfg(self.cfg)     #解析参数文件 将
         super().__init__(self.cfg, sim_params, physics_engine, sim_device, headless)
 
         if not self.headless:
             self.set_camera(self.cfg.viewer.pos, self.cfg.viewer.lookat)
         self._init_buffers()
-        self._prepare_reward_function()
+        self._prepare_reward_function()    #去除零奖励，非零奖励乘以dt，之后将奖励函数形成列表，
         self.init_done = True
 
     def step(self, actions):

@@ -27,7 +27,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
-
+'''
+import debugpy # type: ignore
+try:
+    debugpy.listen(('localhost', 9501))
+    print("Waiting for debugger to attach")
+    debugpy.wait_for_client()
+except Exception as e:
+    print(f"An error occurred: {e}")
+    pass
+'''
 from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
 

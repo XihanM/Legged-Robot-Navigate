@@ -490,7 +490,7 @@ class Go2Robot(LeggedRobot):
 
     #----------------------------------------
     def _init_buffers(self):
-        """ Initialize torch tensors which will contain simulation states and processed quantities
+        """ Initialize torch tensors which will contain simulation states and processed quantities 初始化包含仿真状态和处理过的数量的torch张量
         """
         # get gym GPU state tensors
         actor_root_state = self.gym.acquire_actor_root_state_tensor(self.sim)
@@ -566,17 +566,18 @@ class Go2Robot(LeggedRobot):
         self.default_dof_pos = self.default_dof_pos.unsqueeze(0)
 
     def _prepare_reward_function(self):
-        """ Prepares a list of reward functions, whcih will be called to compute the total reward.
+        """ Prepares a list of reward functions, whcih will be called to compute the total reward.准备奖励函数的列表，用于计算总奖励
             Looks for self._reward_<REWARD_NAME>, where <REWARD_NAME> are names of all non zero reward scales in the cfg.
+            寻找self._reward_<REWARD_NAME>,<REWARD_NAME>是cfg文件中所有非零奖励的名字
         """
-        # remove zero scales + multiply non-zero ones by dt
+        # remove zero scales + multiply non-zero ones by dt 删去零向量，并非零奖励乘以dt
         for key in list(self.reward_scales.keys()):
             scale = self.reward_scales[key]
             if scale==0:
                 self.reward_scales.pop(key) 
             else:
-                self.reward_scales[key] *= self.dt
-        # prepare list of functions
+                self.reward_scales[key] *= self.dt  #按时间比例缩放
+        # prepare list of functions准备函数列表
         self.reward_functions = []
         self.reward_names = []
         for name, scale in self.reward_scales.items():
@@ -642,7 +643,7 @@ class Go2Robot(LeggedRobot):
                 2.1 creates the environment, 
                 2.2 calls DOF and Rigid shape properties callbacks,
                 2.3 create actor with these properties and add them to the env
-             3. Store indices of different bodies of the robot
+             3. Store indices of different bodies of the robot存储机器人不同部位的索引
         """
         asset_path = self.cfg.asset.file.format(LEGGED_GYM_ROOT_DIR=LEGGED_GYM_ROOT_DIR)
         asset_root = os.path.dirname(asset_path)
@@ -797,10 +798,9 @@ class Go2Robot(LeggedRobot):
                 gymutil.draw_lines(sphere_geom, self.gym, self.viewer, self.envs[i], sphere_pose) 
 
     def _init_height_points(self):
-        """ Returns points at which the height measurments are sampled (in base frame)
-
-        Returns:
-            [torch.Tensor]: Tensor of shape (num_envs, self.num_height_points, 3)
+        """ 
+        目标：生成用于高度测量的采样点网格（在机器人或仿真环境中常用）。
+        返回值：形状为 (num_envs, self.num_height_points, 3) 的张量,包含采样点的x、y坐标和z高度(在基座坐标系中)。
         """
         y = torch.tensor(self.cfg.terrain.measured_points_y, device=self.device, requires_grad=False)
         x = torch.tensor(self.cfg.terrain.measured_points_x, device=self.device, requires_grad=False)
@@ -808,6 +808,14 @@ class Go2Robot(LeggedRobot):
 
         self.num_height_points = grid_x.numel()
         points = torch.zeros(self.num_envs, self.num_height_points, 3, device=self.device, requires_grad=False)
+        '''
+        带随机噪声
+        for i in range(self.num_envs):
+            offset = torch_rand_float(-self.cfg.terrain.measure_horizontal_noise, self.cfg.terrain.measure_horizontal_noise, (self.num_height_points,2), device=self.device).squeeze()
+            xy_noise = torch_rand_float(-self.cfg.terrain.measure_horizontal_noise, self.cfg.terrain.measure_horizontal_noise, (self.num_height_points,2), device=self.device).squeeze() + offset
+            points[i, :, 0] = grid_x.flatten() + xy_noise[:, 0]
+            points[i, :, 1] = grid_y.flatten() + xy_noise[:, 1]
+        '''
         points[:, :, 0] = grid_x.flatten()
         points[:, :, 1] = grid_y.flatten()
         return points
@@ -858,15 +866,17 @@ class Go2Robot(LeggedRobot):
 
     #------------ reward functions----------------
     def _reward_lin_vel_z(self):
-        # Penalize z axis base linear velocity
+        # Penalize z axis base linear velocity惩罚z轴base线性速度  参考也有这个
         return torch.square(self.base_lin_vel[:, 2])
     
     def _reward_ang_vel_xy(self):
-        # Penalize xy axes base angular velocity
+        # 参考也有这个
+        # Penalize xy axes base angular velocity  xy平面角速度惩罚权重 鼓励机器人保持水平运动
         return torch.sum(torch.square(self.base_ang_vel[:, :2]), dim=1)
     
     def _reward_orientation(self):
-        # Penalize non flat base orientation
+        # 参考也有这个
+        # Penalize non flat base orientation 姿态方向 计算水平投影强度，量化了机器人的倾斜程度
         return torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1)
 
     def _reward_base_height(self):
@@ -875,7 +885,7 @@ class Go2Robot(LeggedRobot):
         return torch.square(base_height - self.cfg.rewards.base_height_target)
     
     def _reward_torques(self):
-        # Penalize torques
+        # Penalize torques关节扭矩惩罚权重 减少能力消耗
         return torch.sum(torch.square(self.torques), dim=1)
 
     def _reward_dof_vel(self):
@@ -883,14 +893,17 @@ class Go2Robot(LeggedRobot):
         return torch.sum(torch.square(self.dof_vel), dim=1)
     
     def _reward_dof_acc(self):
+        # 参考也有这个
         # Penalize dof accelerations
         return torch.sum(torch.square((self.last_dof_vel - self.dof_vel) / self.dt), dim=1)
     
     def _reward_action_rate(self):
+        # 参考也有这个
         # Penalize changes in actions
         return torch.sum(torch.square(self.last_actions - self.actions), dim=1)
     
     def _reward_collision(self):
+        # 参考也有这个
         # Penalize collisions on selected bodies
         return torch.sum(1.*(torch.norm(self.contact_forces[:, self.penalised_contact_indices, :], dim=-1) > 0.1), dim=1)
     
@@ -936,7 +949,7 @@ class Go2Robot(LeggedRobot):
         self.feet_air_time *= ~contact_filt
         return rew_airTime
     
-    def _reward_stumble(self):
+    def _reward_feet_stumble(self):
         # Penalize feet hitting vertical surfaces
         return torch.any(torch.norm(self.contact_forces[:, self.feet_indices, :2], dim=2) >\
              5 *torch.abs(self.contact_forces[:, self.feet_indices, 2]), dim=1)
